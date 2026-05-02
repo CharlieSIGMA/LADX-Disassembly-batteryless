@@ -16,8 +16,10 @@ include "code/home/header.asm"
 
 ; Sources
 section "Main", rom0[$0150]
+IF DEF(BATTERYLESS_SAVE)
+Start::
+ENDC
 include "code/bank0.asm"
-
 section "bank1",romx[$4000],bank[$01]
 include "code/file_save_screen.asm"
 include "code/game_over.asm"
@@ -778,3 +780,7 @@ include "code/photos_bg.asm"
 section "bank3E",romx[$4000],bank[$3E]
 section "bank3F",romx[$4000],bank[$3F]
 include "text/dialog_5.asm"
+
+IF DEF(BATTERYLESS_SAVE)
+	include "code/flash_save_batteryless.asm"
+ENDC

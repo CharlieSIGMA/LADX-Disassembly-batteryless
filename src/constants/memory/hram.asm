@@ -14,8 +14,16 @@ section "HRAM", HRAM[$ff80]
 ; *                                                                 *
 ; *******************************************************************
 
-; Unused
-ds $10 ; FF80 - FF8F
+; Flash save scratch state
+ds $0C ; FF80 - FF8B
+hFlashSavedBank::
+  ds 1 ; FF8C
+hFlashSavedIE::
+  ds 1 ; FF8D
+hFlashSavedSPLo::
+  ds 1 ; FF8E
+hFlashSavedSPHi::
+  ds 1 ; FF8F
 
 ; Beginning of the game-variables section of the HRAM
 hGameValuesSection::

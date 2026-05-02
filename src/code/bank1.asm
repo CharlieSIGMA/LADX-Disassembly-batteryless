@@ -3,6 +3,7 @@
 ; (instead of the generic "bank1.asm")
 ;
 
+IF !DEF(BATTERYLESS_SAVE)
 DebugSaveFileData::
     db INVENTORY_SHIELD          ; B button       ;; 01:4667
     db INVENTORY_SWORD           ; A button       ;; 01:4668
@@ -46,6 +47,7 @@ DebugSaveFileData::
     db 1, 1, 1, 1, 9 ; POI: unused? (9th dungeon?) ;; 01:46A5
 
 DEF DEBUG_SAVE_FILE_SIZE EQU @ - DebugSaveFileData
+ENDC
 
 
 ; Initialize save files, and load debug save file if needed
@@ -58,6 +60,7 @@ InitSaveFiles::
     ld   de, SaveGame3 - SaveGame1                ;; 01:46B6 $11 $5A $07
     call func_001_4794                            ;; 01:46B9 $CD $94 $47
 
+IF !DEF(BATTERYLESS_SAVE)
     ; POI: If DebugTool1 is enabled,
     ; write a default save file with everything unlocked
     ld   a, [ROM_DebugTool1]                      ;; 01:46BC $FA $03 $00
@@ -172,6 +175,7 @@ ENDR
     ld   [wPhotos1], a                            ;; 01:478B $EA $0C $DC
     ld   a, $0F                                   ;; 01:478E $3E $0F
     ld   [wPhotos2], a                            ;; 01:4790 $EA $0D $DC
+ENDC
 
 .return
     ret                                           ;; 01:4793 $C9
@@ -191,6 +195,9 @@ func_001_4794::
     inc  c                                        ;; 01:47A4 $0C
     dec  b                                        ;; 01:47A5 $05
     jr   nz, .loop_479C                           ;; 01:47A6 $20 $F4
+IF DEF(BATTERYLESS_SAVE)
+    call SanitizeSaveDeathCount
+ENDC
     jr   ret_001_47CD                             ;; 01:47A8 $18 $23
 
 .jr_47AA::
@@ -226,6 +233,65 @@ func_001_4794::
 
 ret_001_47CD::
     ret                                           ;; 01:47CD $C9
+
+IF DEF(BATTERYLESS_SAVE)
+SanitizeSaveDeathCount::
+    push hl
+    push de
+    ld   hl, SaveGame1.main + wDeathCount - wOverworldRoomStatus
+    add  hl, de
+    call EnableSRAM
+    ld   a, [hl]
+    call IsValidBCDByte
+    jr   nc, .clear
+    inc  hl
+    call EnableSRAM
+    ld   a, [hl]
+    cp   $0A
+    jr   nc, .clear
+    pop  de
+    pop  hl
+    ret
+
+.clear
+    ld   hl, SaveGame1.main + wDeathCount - wOverworldRoomStatus
+    add  hl, de
+    xor  a
+    call EnableSRAM
+    ldi  [hl], a
+    ld   [hl], a
+    pop  de
+    pop  hl
+    ret
+
+SanitizeWRAMDeathCount::
+    ld   a, [wDeathCount]
+    call IsValidBCDByte
+    jr   nc, .clear
+    ld   a, [wDeathCount + 1]
+    cp   $0A
+    ret  c
+
+.clear
+    xor  a
+    ld   [wDeathCount], a
+    ld   [wDeathCount + 1], a
+    ret
+
+IsValidBCDByte:
+    cp   $A0
+    jr   nc, .invalid
+    and  $0F
+    cp   $0A
+    jr   nc, .invalid
+    scf
+    ret
+
+.invalid
+    and  a
+    ret
+ENDC
+
 
 include "code/file_menus.asm"
 
@@ -1482,6 +1548,9 @@ ENDC
     ld   [wHealth], a                             ;; 01:5DF7 $EA $5A $DB
 
 .skipHealthReset:
+IF DEF(BATTERYLESS_SAVE)
+    call SanitizeWRAMDeathCount
+ENDC
     call SynchronizeDungeonsItemFlags_trampoline  ;; 01:5DFA $CD $02 $28
     ld   a, [wSaveSlot]                           ;; 01:5DFD $FA $A6 $DB
     sla  a                                        ;; 01:5E00 $CB $27

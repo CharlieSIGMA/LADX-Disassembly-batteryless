@@ -547,7 +547,7 @@ FileCreationInit2Handler::
     ld   [hl], a ; wDrawCommandData[1]            ;; 01:4A3B $77
     jp   IncrementGameplaySubtypeAndReturn        ;; 01:4A3C $C3 $D6 $44
 
-IF !LANG_DE
+IF !LANG_DE && !DEF(BATTERYLESS_SAVE)
 ; Write a single byte to the save file.
 ; Inputs:
 ;   hl   address of the save file start
@@ -710,6 +710,9 @@ ENDC
     xor  a                                        ;; 01:4B23 $AF
     ldi  [hl], a                                  ;; 01:4B24 $22
     ld   [hl], a                                  ;; 01:4B25 $77
+IF DEF(BATTERYLESS_SAVE)
+    call FlushSRAMToFlash
+ENDC
     jp   label_001_4555                           ;; 01:4B26 $C3 $55 $45
 
 .validationEnd
@@ -1272,6 +1275,10 @@ ENDC
     ld   a, e                                     ;; 01:4E97 $7B
     or   d                                        ;; 01:4E98 $B2
     jr   nz, .loop_4E91                           ;; 01:4E99 $20 $F6
+
+IF DEF(BATTERYLESS_SAVE)
+    call FlushSRAMToFlash
+ENDC
 
     jp   label_001_4555                           ;; 01:4E9B $C3 $55 $45
 
@@ -1937,6 +1944,10 @@ FileCopyStateAHandler::
     ld   a, e                                     ;; 01:522E $7B
     or   d                                        ;; 01:522F $B2
     jr   nz, .loop_5224                           ;; 01:5230 $20 $F2
+
+IF DEF(BATTERYLESS_SAVE)
+    call FlushSRAMToFlash
+ENDC
 
     jp   label_001_4555                           ;; 01:5232 $C3 $55 $45
 

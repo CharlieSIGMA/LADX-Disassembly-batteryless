@@ -5,7 +5,11 @@
 ; After the boot ROM code is done executing, control
 ; is transfered to address $100, which immediatly jumps here.
 ; (See header.asm)
+IF DEF(BATTERYLESS_SAVE)
+StartReal::
+ELSE
 Start::
+ENDC
     ; Switch CPU to double-speed if needed
     cp   BOOTUP_A_CGB ; running on Game Boy Color? ;; 00:0150 $FE $11
     jr   nz, .notGBC                              ;; 00:0152 $20 $1A
@@ -33,6 +37,12 @@ Init::
     ldh  [hIsGBC], a ; Save isGBC value           ;; 00:016F $E0 $FE
     call LCDOff      ; Turn off screen            ;; 00:0171 $CD $CF $28
     ld   sp, wStackTop   ; Init stack pointer         ;; 00:0174 $31 $FF $DF
+
+IF DEF(BATTERYLESS_SAVE)
+    ld   a, BANK(CopyFlashToSRAM)
+    ld   [rSelectROMBank], a
+    call CopyFlashToSRAM
+ENDC
 
     ; Super GameBoy detection and initialization
     callsb SuperGameBoyInit                       ;; 00:0177 $3E $3C $EA $00 $21 $CD $22 $6A

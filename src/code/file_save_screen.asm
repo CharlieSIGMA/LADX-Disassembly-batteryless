@@ -148,6 +148,7 @@ FileSaveInteractive::
 .done
     ret                                           ;; 01:40D5 $C9
 
+IF !DEF(BATTERYLESS_SAVE)
 ; Unused code?
 label_40D6::
     xor  a                                        ;; 01:40D6 $AF
@@ -165,10 +166,14 @@ label_40D6::
     ld   a, $80                                   ;; 01:40F3 $3E $80
     ld   [wInvincibilityCounter], a               ;; 01:40F5 $EA $C7 $DB
     ret                                           ;; 01:40F8 $C9
+ENDC
 
 jr_001_40F9::
     call label_27F2                               ;; 01:40F9 $CD $F2 $27
     call SaveGameToFile                           ;; 01:40FC $CD $E6 $5D
+IF DEF(BATTERYLESS_SAVE)
+    call FlushSRAMToFlash
+ENDC
     call ClearWRAMAndLowerHRAM                    ;; 01:40FF $CD $CB $29
     xor  a                                        ;; 01:4102 $AF
     ldh  [hActiveEntityTilesOffset], a            ;; 01:4103 $E0 $F5
@@ -216,6 +221,98 @@ LCDOn::
 Data_001_4128::
     db   $38 + $10                                ;; 01:4128
     db   $48 + $10                                ;; 01:4129
+
+IF DEF(BATTERYLESS_SAVE)
+FlushSRAMToFlash::
+    call CopySRAMToFlashSafe
+    ret
+
+CopySRAMToFlashSafe::
+    push af
+    push bc
+    push de
+    push hl
+
+    ld   a, [wCurrentBank]
+    ldh  [hFlashSavedBank], a
+
+    ldh  a, [rIE]
+    ldh  [hFlashSavedIE], a
+    di
+    xor  a
+    ldh  [rIE], a
+
+    ld   hl, sp+0
+    ld   a, l
+    ldh  [hFlashSavedSPLo], a
+    ld   a, h
+    ldh  [hFlashSavedSPHi], a
+
+    ldh  a, [rSVBK]
+    ld   [wFlashSVBK], a
+    ld   a, $02
+    ldh  [rSVBK], a
+
+    ld   sp, $DFF0
+
+    ld   hl, FlashLoaderStub
+    ld   bc, FlashLoaderStubEnd - FlashLoaderStub
+    ld   de, wFlashWRAMStub
+.copy_write
+    ld   a, [hli]
+    ld   [de], a
+    inc  de
+    dec  bc
+    ld   a, b
+    or   c
+    jr   nz, .copy_write
+
+    call wFlashWRAMStub
+
+    ldh  a, [hFlashSavedSPLo]
+    ld   l, a
+    ldh  a, [hFlashSavedSPHi]
+    ld   h, a
+    ld   sp, hl
+
+    ld   a, [wFlashSVBK]
+    ldh  [rSVBK], a
+
+    ldh  a, [hFlashSavedIE]
+    ldh  [rIE], a
+
+    ldh  a, [hFlashSavedBank]
+    ld   [wCurrentBank], a
+    ld   [rSelectROMBank], a
+
+    pop  hl
+    pop  de
+    pop  bc
+    pop  af
+    ei
+    ret
+
+FlashLoaderStub:
+    ld   a, FLASH_ROUTINE_BANK
+    ld   [rSelectROMBank], a
+    ld   hl, FlashSaveRoutineWRAM
+    ld   bc, FlashSaveRoutineWRAMEnd - FlashSaveRoutineWRAM
+    ld   de, wFlashWRAMRoutine
+.copy
+    ld   a, [hli]
+    ld   [de], a
+    inc  de
+    dec  bc
+    ld   a, b
+    or   c
+    jr   nz, .copy
+    call wFlashWRAMRoutine
+    ld   a, FLASH_MODE_VALUE
+    ld   [FLASH_MODE_REG], a
+    ret
+FlashLoaderStubEnd:
+ASSERT (FlashLoaderStubEnd - FlashLoaderStub) <= $40
+ENDC
 
 ; Called by FileSaveInteractive
 func_001_412A::

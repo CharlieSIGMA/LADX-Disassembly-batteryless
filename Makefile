@@ -1,7 +1,7 @@
 .POSIX:
 .SUFFIXES:
 .PRECIOUS: %.2bpp oam_%.2bpp
-.PHONY: default build build-all test test-all all clean tidy
+.PHONY: default build build-all build-batteryless build-all-batteryless test test-all all all-batteryless clean tidy azle-r2 azle-r2-pad
 
 # Recursive `wildcard` function.
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
@@ -74,11 +74,20 @@ oam_%.2bpp: oam_%.png
 src/main.%.o: src/main.asm $(asm_files) $(gfx_files:.png=.2bpp) $(bin_files)
 	$(ASM) $(ASFLAGS) $($*_ASFLAGS) -I src/ -o $@ $<
 
+src/main.%-batteryless.o: src/main.asm $(asm_files) $(gfx_files:.png=.2bpp) $(bin_files)
+	$(ASM) $(ASFLAGS) $($*_ASFLAGS) -DBATTERYLESS_SAVE -I src/ -o $@ $<
+
 # Link object files into a GBC executable rom
 # The arguments used are both the global options (e.g. `LDFLAGS`) and the
 # locale-specific options (e.g. `azlg-r1_LDFLAGS`).
 %.gbc: src/main.%.o
 	$(LD) $(LDFLAGS) $($*_LDFLAGS) -n $*.sym -o $@ $^
+	$(FX) $(FXFLAGS) $($*_FXFLAGS) $@
+
+%-batteryless.gbc: src/main.%-batteryless.o
+	$(LD) $(LDFLAGS) $($*_LDFLAGS) -n $*-batteryless.sym -o $@ $^
+	$(FX) $(FXFLAGS) $($*_FXFLAGS) $@
+	python3 -c "import pathlib; p=pathlib.Path('$@'); d=p.read_bytes(); t=0x200000; p.write_bytes(d + bytes([0xFF])*(t-len(d)) if len(d)<t else d)"
 	$(FX) $(FXFLAGS) $($*_FXFLAGS) $@
 
 # Make may attempt to re-generate the Makefile; prevent this.
@@ -95,16 +104,19 @@ azlj_bin += $(wildcard revisions/J0/src/data/backgrounds/*.attrmap.encoded)
 
 games += azlj.gbc
 src/main.azlj.o: $(azlj_asm) $(azlj_gfx:.png=.2bpp) $(azlj_bin)
+src/main.azlj-batteryless.o: $(azlj_asm) $(azlj_gfx:.png=.2bpp) $(azlj_bin)
 azlj_ASFLAGS = -DLANG=JP -DVERSION=0 -I revisions/J0/src/
 azlj_FXFLAGS = --rom-version 0 --title "ZELDA"
 
 games += azlj-r1.gbc
 src/main.azlj-r1.o: $(azlj_asm) $(azlj_gfx:.png=.2bpp) $(azlj_bin)
+src/main.azlj-r1-batteryless.o: $(azlj_asm) $(azlj_gfx:.png=.2bpp) $(azlj_bin)
 azlj-r1_ASFLAGS = -DLANG=JP -DVERSION=1 -I revisions/J0/src/
 azlj-r1_FXFLAGS = --rom-version 1 --title "ZELDA"
 
 games += azlj-r2.gbc
 src/main.azlj-r2.o: $(azlj_asm) $(azlj_gfx:.png=.2bpp) $(azlj_bin)
+src/main.azlj-r2-batteryless.o: $(azlj_asm) $(azlj_gfx:.png=.2bpp) $(azlj_bin)
 azlj-r2_ASFLAGS = -DLANG=JP -DVERSION=2 -I revisions/J0/src/
 azlj-r2_FXFLAGS = --rom-version 2 --title "ZELDA" --game-id "AZLJ"
 
@@ -119,11 +131,13 @@ azlg_bin += $(wildcard revisions/G0/src/data/backgrounds/*.attrmap.encoded)
 
 games += azlg.gbc
 src/main.azlg.o: $(azlg_asm) $(azlg_gfx:.png=.2bpp) $(azlg_bin)
+src/main.azlg-batteryless.o: $(azlg_asm) $(azlg_gfx:.png=.2bpp) $(azlg_bin)
 azlg_ASFLAGS = -DLANG=DE -DVERSION=0 -I revisions/G0/src/
 azlg_FXFLAGS = --rom-version 0 --non-japanese --title "ZELDA"
 
 games += azlg-r1.gbc
 src/main.azlg-r1.o: $(azlg_asm) $(azlg_gfx:.png=.2bpp) $(azlg_bin) azlj-r2.gbc
+src/main.azlg-r1-batteryless.o: $(azlg_asm) $(azlg_gfx:.png=.2bpp) $(azlg_bin) azlj-r2.gbc
 azlg-r1_ASFLAGS = -DLANG=DE -DVERSION=1 -I revisions/G0/src/
 azlg-r1_LDFLAGS = -O azlj-r2.gbc
 azlg-r1_FXFLAGS = --rom-version 1 --non-japanese --title "ZELDA" --game-id "AZLD"
@@ -139,11 +153,13 @@ azlf_bin += $(wildcard revisions/F0/src/data/backgrounds/*.attrmap.encoded)
 
 games += azlf.gbc
 src/main.azlf.o: $(azlf_asm) $(azlf_gfx:.png=.2bpp) $(azlf_bin)
+src/main.azlf-batteryless.o: $(azlf_asm) $(azlf_gfx:.png=.2bpp) $(azlf_bin)
 azlf_ASFLAGS = -DLANG=FR -DVERSION=0 -I revisions/F0/src/
 azlf_FXFLAGS = --rom-version 0 --non-japanese --title "ZELDA"
 
 games += azlf-r1.gbc
 src/main.azlf-r1.o: $(azlf_asm) $(azlf_gfx:.png=.2bpp) $(azlf_bin) azlg-r1.gbc
+src/main.azlf-r1-batteryless.o: $(azlf_asm) $(azlf_gfx:.png=.2bpp) $(azlf_bin) azlg-r1.gbc
 azlf-r1_ASFLAGS = -DLANG=FR -DVERSION=1 -I revisions/F0/src/
 azlf-r1_LDFLAGS = -O azlg-r1.gbc
 azlf-r1_FXFLAGS = --rom-version 1 --non-japanese --title "ZELDA" --game-id "AZLF"
@@ -154,19 +170,24 @@ azlf-r1_FXFLAGS = --rom-version 1 --non-japanese --title "ZELDA" --game-id "AZLF
 
 games += azle.gbc
 src/main.azle.o:
+src/main.azle-batteryless.o:
 azle_ASFLAGS = -DLANG=EN -DVERSION=0
 azle_FXFLAGS = --rom-version 0 --non-japanese --title "ZELDA"
 
 games += azle-r1.gbc
 src/main.azle-r1.o:
+src/main.azle-r1-batteryless.o:
 azle-r1_ASFLAGS = -DLANG=EN -DVERSION=1
 azle-r1_FXFLAGS = --rom-version 1 --non-japanese --title "ZELDA"
 
 games += azle-r2.gbc
 src/main.azle-r2.o: azlf-r1.gbc
+src/main.azle-r2-batteryless.o: azlf-r1.gbc
 azle-r2_ASFLAGS = -DLANG=EN -DVERSION=2
 azle-r2_LDFLAGS = -O azlf-r1.gbc
 azle-r2_FXFLAGS = --rom-version 2 --non-japanese --title "ZELDA" --game-id "AZLE"
+
+batteryless_games := $(games:.gbc=-batteryless.gbc)
 
 #
 # Main targets
@@ -178,6 +199,12 @@ build: azle.gbc
 # Build all revisions.
 build-all: $(games)
 
+# Build the default US 1.0 revision with batteryless save support.
+build-batteryless: azle-batteryless.gbc
+
+# Build all revisions with batteryless save support.
+build-all-batteryless: $(batteryless_games)
+
 # Test the default revision.
 test: build
 	@tools/compare.sh ladx.md5 azle.gbc
@@ -188,11 +215,19 @@ test-all: build-all
 
 all: build-all test-all
 
+all-batteryless: build-all-batteryless
+
+# Build only the US 1.2 (azle-r2) revision.
+azle-r2: azle-r2.gbc
+
+# Compatibility alias for the US 1.2 batteryless build.
+azle-r2-pad: azle-r2-batteryless.gbc
+
 tidy:
-	rm -f $(games)
-	rm -f $(games:%.gbc=src/main.%.o)
-	rm -f $(games:.gbc=.map)
-	rm -f $(games:.gbc=.sym)
+	rm -f $(games) $(batteryless_games)
+	rm -f $(games:%.gbc=src/main.%.o) $(batteryless_games:%.gbc=src/main.%.o)
+	rm -f $(games:.gbc=.map) $(batteryless_games:.gbc=.map)
+	rm -f $(games:.gbc=.sym) $(batteryless_games:.gbc=.sym)
 
 clean: tidy
 	rm -f $(gfx_files:.png=.2bpp)

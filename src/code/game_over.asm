@@ -174,6 +174,9 @@ GameOverInteractiveHandler::
 
 .jr_42F2::
     call SaveGameToFile                           ;; 01:42F2 $CD $E6 $5D
+IF DEF(BATTERYLESS_SAVE)
+    call FlushSRAMToFlash
+ENDC
 
 jr_001_42F5::
     xor  a                                        ;; 01:42F5 $AF
@@ -206,6 +209,9 @@ jr_001_42F5::
 
 jr_001_432C::
     call SaveGameToFile                           ;; 01:432C $CD $E6 $5D
+IF DEF(BATTERYLESS_SAVE)
+    call FlushSRAMToFlash
+ENDC
     xor  a                                        ;; 01:432F $AF
     ldh  [hActiveEntityTilesOffset], a            ;; 01:4330 $E0 $F5
     call func_001_6162                            ;; 01:4332 $CD $62 $61

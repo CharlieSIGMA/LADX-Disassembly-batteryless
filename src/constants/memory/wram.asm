@@ -43,8 +43,23 @@ wLinkOAMBuffer::
 wDynamicOAMBuffer::
   ds 4 * 28 ; C030 - C09F
 
+; Flash routine scratch state
+wFlashRoutineBuffer::
+  ds $40 ; C0A0-C0DF
+wFlashTargetBank::
+  ds 1 ; C0E0
+wFlashBankIndex::
+  ds 1 ; C0E1
+wFlashError::
+  ds 1 ; C0E2
+wFlashReturnBank::
+  ds 1 ; C0E3
+wFlashSVBK::
+  ds 1 ; C0E4
+wFlashTemp::
+  ds 1 ; C0E5
 ; Unused
-ds $60 ; C0A0-C0FF
+  ds $1A ; C0E6-C0FF
 
 ; Table of the scrollX offset to add for each screen section being drawn
 wScrollXOffsetForSection::
@@ -4080,3 +4095,8 @@ section "WRAM Bank2", wramx[$D000], bank[2]
 ; Something rombank and photographs related
 DEF w2_D16A EQU $D16A
 
+; Scratch buffer for flash routines executed from WRAM
+wFlashWRAMRoutine::
+  ds $400 ; D000 - D3FF
+wFlashWRAMStub::
+  ds $40 ; D400 - D43F
