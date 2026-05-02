@@ -1,7 +1,7 @@
 .POSIX:
 .SUFFIXES:
 .PRECIOUS: %.2bpp oam_%.2bpp
-.PHONY: default build build-all build-batteryless build-all-batteryless test test-all all all-batteryless clean tidy azle-r2 azle-r2-pad
+.PHONY: default build build-all build-batteryless build-all-batteryless test test-all test-all-batteryless all all-batteryless clean tidy azle-r2
 
 # Recursive `wildcard` function.
 rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
@@ -213,15 +213,16 @@ test: build
 test-all: build-all
 	@tools/compare.sh ladx.md5 $(games)
 
+# Test all batteryless revisions.
+test-all-batteryless: build-all-batteryless
+	@tools/compare.sh ladx-batteryless.md5 $(batteryless_games)
+
 all: build-all test-all
 
-all-batteryless: build-all-batteryless
+all-batteryless: build-all-batteryless test-all-batteryless
 
 # Build only the US 1.2 (azle-r2) revision.
 azle-r2: azle-r2.gbc
-
-# Compatibility alias for the US 1.2 batteryless build.
-azle-r2-pad: azle-r2-batteryless.gbc
 
 tidy:
 	rm -f $(games) $(batteryless_games)
