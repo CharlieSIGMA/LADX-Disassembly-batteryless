@@ -711,7 +711,7 @@ ENDC
     ldi  [hl], a                                  ;; 01:4B24 $22
     ld   [hl], a                                  ;; 01:4B25 $77
 IF DEF(BATTERYLESS_SAVE)
-    call FlushSRAMToFlash
+    call FlushSRAMToFlashMuted
 ENDC
     jp   label_001_4555                           ;; 01:4B26 $C3 $55 $45
 
@@ -1277,7 +1277,7 @@ ENDC
     jr   nz, .loop_4E91                           ;; 01:4E99 $20 $F6
 
 IF DEF(BATTERYLESS_SAVE)
-    call FlushSRAMToFlash
+    call FlushSRAMToFlashMuted
 ENDC
 
     jp   label_001_4555                           ;; 01:4E9B $C3 $55 $45
@@ -1946,7 +1946,7 @@ FileCopyStateAHandler::
     jr   nz, .loop_5224                           ;; 01:5230 $20 $F2
 
 IF DEF(BATTERYLESS_SAVE)
-    call FlushSRAMToFlash
+    call FlushSRAMToFlashMuted
 ENDC
 
     jp   label_001_4555                           ;; 01:5232 $C3 $55 $45

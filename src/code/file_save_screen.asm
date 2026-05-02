@@ -227,6 +227,16 @@ FlushSRAMToFlash::
     call CopySRAMToFlashSafe
     ret
 
+FlushSRAMToFlashMuted::
+    ldh  a, [rNR50]
+    push af
+    xor  a
+    ldh  [rNR50], a
+    call FlushSRAMToFlash
+    pop  af
+    ldh  [rNR50], a
+    ret
+
 CopySRAMToFlashSafe::
     push af
     push bc
