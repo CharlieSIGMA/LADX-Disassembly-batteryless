@@ -19,7 +19,7 @@ It builds the following ROMs:
 
 This fork adds batteryless save support for Link's Awakening DX on flash carts that do not use a battery-backed SRAM save.
 
-The game still writes saves to SRAM through the original save routines, then mirrors the SRAM contents into an unused flash area in the padded ROM. On boot, the ROM restores the saved flash contents back into SRAM before the normal file select flow begins.
+The game still writes saves to SRAM through the original save routines, then mirrors the SRAM contents into an unused flash area in the padded ROM. On boot, the ROM restores the saved flash contents back into SRAM before the normal file select flow begins. Should work on carts with the `M29W320` series of flash chips. Support for other flash chips can be added by altering the flash commands in `flash_save_batteryless.asm`.
 
 ### Implemented save flows:
 
