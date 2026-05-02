@@ -1,6 +1,6 @@
 # Links Awakening DX Disassembly
 
-I have made batteryless patches for the LADX decompilation This was a vibe-coded project using Codex. This is a fork of [LADX-Disassembly](https://github.com/zladx/LADX-Disassembly).
+I have made batteryless patches for the LADX decompilation This was a vibe-coded project using Codex. This is a fork of [LADX-Disassembly](https://github.com/zladx/LADX-Disassembly). Also, credits to BennVenn as this was built with learnings from his YouTube video on this subject.
 
 It builds the following ROMs:
 
