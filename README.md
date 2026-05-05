@@ -1,6 +1,6 @@
 # Links Awakening DX Disassembly
 
-I have made batteryless patches for the LADX decompilation This was a vibe-coded project using Codex. This is a fork of [LADX-Disassembly](https://github.com/zladx/LADX-Disassembly). Also, credits to BennVenn as this was built with learnings from his YouTube video on this subject.
+I have made batteryless patches for the LADX decompilation. This was a vibe-coded project using Codex. This is a fork of [LADX-Disassembly](https://github.com/zladx/LADX-Disassembly). Also, credits to BennVenn as this was built with learnings from his YouTube video on this subject.
 
 It builds the following ROMs:
 
@@ -34,7 +34,7 @@ The game still writes saves to SRAM through the original save routines, then mir
 
 - Adds batteryless ROM outputs for all supported revisions as `*-batteryless.gbc`
 - Pads batteryless ROMs to 2 MB
-- Stores save data starting at physical ROM offset `0x110000`
+- Stores save data starting at physical ROM offset `0x110000` at the first half of rom bank (for FlashGBX save dumping and injecting on batteryless carts) 
 - Adds `make all-batteryless` for build + checksum verification
 - Adds `ladx-batteryless.md5` for expected batteryless ROM hashes
 
